@@ -29,10 +29,8 @@ async def handler(event):
     if event_id == peer_channel.channel_id:
         return
     if event_id == target_channel.channel_id:
+        print(event.message)
         message_text = event.message.text
-        if not message_text:
-            return
-            
         # Check message length
         if len(message_text) > max_message_length:
             return
@@ -44,8 +42,8 @@ async def handler(event):
         ]
         if any(re.search(pattern, message_text) for pattern in currency_patterns):
             return
-            
-        await client.forward_messages(peer_channel, event.message)
+        msg = event.message
+        await client.send_message(peer_channel, msg)
         await client(functions.messages.MarkDialogUnreadRequest(
             peer=peer_channel,
             unread=True
@@ -60,10 +58,13 @@ async def main():
             print(f"Listen for channel: {chat_entity.title}")
         except Exception as e:
             error_message = f"Failed to get chat name for ID {target_channel_id}: {e}"
+            await client.send_message("me", error_message)
             print(error_message)
         await client.run_until_disconnected()
     except Exception as e:
+
         error_message = f"Main function error: {e}\n{traceback.format_exc()}"
+        await client.send_message("me", error_message)
         print(error_message)
 
 
